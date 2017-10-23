@@ -1,0 +1,51 @@
+{
+    "name": "yamakadi/laravel-line-webhooks",
+    "description": "Handle Line webhooks in a Laravel application",
+    "keywords": [
+        "yamakadi",
+        "laravel-line-webhooks",
+        "line-sdk"
+    ],
+    "homepage": "https://github.com/yamakadi/laravel-line-webhooks",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Yamamoto Kadir",
+            "email": "me@kakirigi.com",
+            "homepage": "https://yamakadi.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^7.0",
+        "illuminate/support": "~5.5.0",
+        "linecorp/line-bot-sdk": "^2.3"
+    },
+    "require-dev": {
+        "orchestra/testbench": "~3.5.0",
+        "phpunit/phpunit": "^6.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "Yamakadi\\LineWebhooks\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Yamakadi\\LineWebhooks\\Tests\\": "tests"
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Yamakadi\\LineWebhooks\\LineWebhooksServiceProvider"
+            ]
+        }
+    }
+}
