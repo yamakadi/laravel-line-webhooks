@@ -11,7 +11,7 @@
     "authors": [
         {
             "name": "Yamamoto Kadir",
-            "email": "me@kakirigi.com",
+            "email": "me@yamakadi.com",
             "homepage": "https://yamakadi.com",
             "role": "Developer"
         }
@@ -19,7 +19,7 @@
     "require": {
         "php": "^7.0",
         "illuminate/support": "~5.5.0",
-        "linecorp/line-bot-sdk": "^2.3"
+        "yamakadi/linebot": "dev-master"
     },
     "require-dev": {
         "orchestra/testbench": "~3.5.0",

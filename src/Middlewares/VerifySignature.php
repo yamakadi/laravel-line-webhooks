@@ -3,13 +3,14 @@
 namespace Yamakadi\LineWebhooks\Middlewares;
 
 use Closure;
-use LINE\LINEBot;
-use LINE\LINEBot\Constant\HTTPHeader;
-use LINE\LINEBot\Exception\InvalidSignatureException;
+use Yamakadi\LineBot\LineBot;
+use Yamakadi\LineBot\VerifiesSignature;
 use Yamakadi\LineWebhooks\Exceptions\WebhookFailed;
 
 class VerifySignature
 {
+    use VerifiesSignature;
+
     /**
      * Handle an incoming request.
      *
@@ -21,7 +22,7 @@ class VerifySignature
      */
     public function handle($request, Closure $next)
     {
-        $signature = $request->header(HTTPHeader::LINE_SIGNATURE);
+        $signature = $request->header(LineBot::LINE_SIGNATURE);
 
         if (!$signature) {
             throw WebhookFailed::missingSignature();
@@ -51,10 +52,6 @@ class VerifySignature
             throw WebhookFailed::channelSecretNotSet();
         }
 
-        try {
-            return LINEBot\SignatureValidator::validateSignature($payload, $secret, $signature);
-        } catch (InvalidSignatureException $exception) {
-            return false;
-        }
+        return $this->verifySignature($secret, $signature, $payload);
     }
 }

@@ -2,9 +2,13 @@
 
 namespace Yamakadi\LineWebhooks;
 
+use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use LINE\LINEBot;
+use Yamakadi\LineBot\AccessToken\Issue;
+use Yamakadi\LineBot\AccessToken\Token;
+use Yamakadi\LineBot\Channel;
+use Yamakadi\LineBot\LineBot;
 
 class LineWebhooksServiceProvider extends ServiceProvider
 {
@@ -33,10 +37,24 @@ class LineWebhooksServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/line-webhooks.php', 'line-webhooks');
 
-        $this->app->bind(LINEBot::class, function($app) {
-            $httpClient = new LINEBot\HTTPClient\CurlHTTPClient(config('line-webhooks.channel_access_token'));
+        $this->app->bind(Channel::class, function($app) {
+            return new Channel(config('line-webhooks.channel_id'), config('line-webhooks.channel_secret'));
+        });
 
-            return new LINEBot($httpClient, ['channelSecret' => config('line-webhooks.channel_secret')]);
+        $this->app->bind(Token::class, function($app) {
+            if(config('line-webhooks.channel_access_token')) {
+                return Token::make(config('line-webhooks.channel_access_token'));
+            }
+
+            $issue = new Issue(new Client());
+            $channel = $app->make(Channel::class);
+
+            return $issue($channel->id(), $channel->secret());
+        });
+
+
+        $this->app->bind(LineBot::class, function($app) {
+            return new LineBot($app->make(Channel::class), $app->make(Token::class), new Client());
         });
     }
 }

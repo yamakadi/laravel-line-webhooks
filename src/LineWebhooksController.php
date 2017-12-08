@@ -4,12 +4,10 @@ namespace Yamakadi\LineWebhooks;
 
 use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Mail\Message;
 use Illuminate\Routing\Controller;
-use LINE\LINEBot;
-use LINE\LINEBot\Constant\HTTPHeader;
-use LINE\LINEBot\Exception\InvalidEventRequestException;
-use LINE\LINEBot\Exception\InvalidSignatureException;
+use Yamakadi\LineBot\Exceptions\InvalidRequestException;
+use Yamakadi\LineBot\Exceptions\InvalidSignatureException;
+use Yamakadi\LineBot\LineBot;
 use Yamakadi\LineWebhooks\Exceptions\WebhookFailed;
 use Yamakadi\LineWebhooks\Middlewares\VerifySignature;
 
@@ -20,18 +18,18 @@ class LineWebhooksController extends Controller
         $this->middleware(VerifySignature::class);
     }
 
-    public function __invoke(Request $request, LINEBot $line)
+    public function __invoke(Request $request, LineBot $line)
     {
         $modelClass = config('line-webhooks.model');
 
         $payload = $request->getContent();
-        $signature = $request->header(HTTPHeader::LINE_SIGNATURE);
+        $signature = $request->header(LineBot::LINE_SIGNATURE);
 
         try {
-            $events = $line->parseEventRequest($payload, $signature);
+            $events = $line->parse($payload, $signature);
         } catch (InvalidSignatureException $e) {
             throw WebhookFailed::invalidSignature($signature);
-        } catch (InvalidEventRequestException $e) {
+        } catch (InvalidRequestException $e) {
             $lineWebhookCall = $modelClass::create([
                 'type' => 'invalid_event',
                 'signature' => $signature,
@@ -46,7 +44,7 @@ class LineWebhooksController extends Controller
 
         foreach ($events as $event) {
             $lineWebhookCall = $modelClass::create([
-                'type' => snake_case(class_basename($event)),
+                'type' => $event::TYPE,
                 'signature' => $signature,
                 'payload' => $payload,
             ]);

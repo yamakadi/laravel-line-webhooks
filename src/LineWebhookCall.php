@@ -4,7 +4,7 @@ namespace Yamakadi\LineWebhooks;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use LINE\LINEBot\Event\BaseEvent;
+use Yamakadi\LineBot\Events\Event;
 use Yamakadi\LineWebhooks\Exceptions\WebhookFailed;
 
 class LineWebhookCall extends Model
@@ -16,13 +16,9 @@ class LineWebhookCall extends Model
         'exception' => 'array',
     ];
 
-    public function process(BaseEvent $event)
+    public function process(Event $event)
     {
         $this->clearException();
-
-        if ($this->type === '') {
-            throw WebhookFailed::missingType($this);
-        }
 
         event("line-webhooks::{$this->type}", $event, $this);
 
