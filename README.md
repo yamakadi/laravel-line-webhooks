@@ -35,6 +35,7 @@ return [
     /*
      * You need to define your channel secret and access token in your environment variables
      */
+    'channel_id' => env('LINEBOT_CHANNEL_ID'),
     'channel_secret' => env('LINEBOT_CHANNEL_SECRET'),
     'channel_access_token' => env('LINEBOT_CHANNEL_ACCESS_TOKEN'),
 
@@ -46,8 +47,8 @@ return [
      * https://developers.line.me/en/docs/messaging-api/reference/#webhook-event-objects
      */
     'jobs' => [
-        // 'message_event' => \App\Jobs\LineWebhooks\HandleIncomingMessage::class,
-        // 'beacon_detection_event' => \App\Jobs\LineWebhooks\HandleBeaconSignal::class,
+        // 'message' => \App\Jobs\LineWebhooks\HandleIncomingMessage::class,
+        // 'beacon' => \App\Jobs\LineWebhooks\HandleBeaconSignal::class,
     ],
 
     /*
@@ -110,20 +111,20 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
-use LINE\LINEBot\Event\BaseEvent;
+use Yamakadi\LineBot\Events\Event;
 use Yamakadi\LineWebhooks\LineWebhookCall;
 
-class HandleChargeableSource implements ShouldQueue
+class HandleIncomingText implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
     
-    /** @var \LINE\LINEBot\Event\BaseEvent */
+    /** @var \Yamakadi\LineBot\Events\Event */
     public $event;
     
     /** @var \Yamakadi\LineWebhooks\LineWebhookCall */
     public $webhookCall;
 
-    public function __construct(BaseEvent $event, LineWebhookCall $webhookCall)
+    public function __construct(Event $event, LineWebhookCall $webhookCall)
     {
         $this->event = $event;
         $this->webhookCall = $webhookCall;
@@ -146,7 +147,7 @@ After having created your job you must register it at the `jobs` array in the `l
 // config/line-webhooks.php
 
 'jobs' => [
-    'message_event' => \App\Jobs\LineWebhooks\HandleIncomingMessage::class,
+    'message' => \App\Jobs\LineWebhooks\HandleIncomingMessage::class,
 ],
 ```
 
@@ -165,7 +166,7 @@ Let's take a look at how you can listen for such an event. In the `EventServiceP
  * @var array
  */
 protected $listen = [
-    'line-webhooks::message_event' => [
+    'line-webhooks::message' => [
         App\Jobs\LineWebhooks\HandleIncomingMessage::class,
     ],
 ];
@@ -179,12 +180,12 @@ Here's an example of such a listener:
 namespace App\Listeners;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
-use LINE\LINEBot\Event\BaseEvent;
+use Yamakadi\LineBot\Events\Event;
 use Yamakadi\LineWebhooks\LineWebhookCall;
 
-class ChargeSource implements ShouldQueue
+class ReplyWithQuote implements ShouldQueue
 {
-    public function handle(BaseEvent $event, LineWebhookCall $webhookCall)
+    public function handle(Event $event, LineWebhookCall $webhookCall)
     {
         // do your work here
 
