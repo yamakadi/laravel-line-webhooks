@@ -5,8 +5,8 @@ namespace Yamakadi\LineWebhooks\Tests;
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler;
 use Illuminate\Contracts\Debug\ExceptionHandler;
-use LINE\LINEBot\Event\BaseEvent;
 use Orchestra\Testbench\TestCase as OrchestraTestCase;
+use Yamakadi\LineBot\Events\Generic;
 use Yamakadi\LineWebhooks\LineWebhooksServiceProvider;
 
 abstract class TestCase extends OrchestraTestCase
@@ -27,12 +27,14 @@ abstract class TestCase extends OrchestraTestCase
     {
         $app['config']->set('database.default', 'sqlite');
         $app['config']->set('database.connections.sqlite', [
-            'driver'   => 'sqlite',
+            'driver' => 'sqlite',
             'database' => ':memory:',
-            'prefix'   => '',
+            'prefix' => '',
         ]);
 
+        config(['line-webhooks.channel_id' => 'test_channel_id']);
         config(['line-webhooks.channel_secret' => 'test_channel_secret']);
+        config(['line-webhooks.channel_access_token' => 'test_channel_access_token']);
     }
 
     protected function setUpDatabase()
@@ -56,7 +58,8 @@ abstract class TestCase extends OrchestraTestCase
 
     protected function disableExceptionHandling()
     {
-        $this->app->instance(ExceptionHandler::class, new class extends Handler {
+        $this->app->instance(ExceptionHandler::class, new class extends Handler
+        {
             public function __construct()
             {
             }
@@ -81,7 +84,8 @@ abstract class TestCase extends OrchestraTestCase
         return "{$signature}";
     }
 
-    protected function getFakePayload(array $overwrite = []) {
+    protected function getFakePayload(array $overwrite = [])
+    {
         $payload = [
             'events' =>
                 [
@@ -107,8 +111,19 @@ abstract class TestCase extends OrchestraTestCase
         return array_merge($payload, $overwrite);
     }
 
-    protected function getFakeBaseEvent(array $overwrite = [])
+    protected function getFakeEvent(array $overwrite = [])
     {
-        return new BaseEvent($this->getFakePayload($overwrite));
+        return new class($this->getFakePayload($overwrite)) extends Generic
+        {
+            const TYPE = 'test';
+
+            public function __construct(array $source)
+            {
+                parent::__construct(time(), $source);
+            }
+        };
     }
 }
+
+
+

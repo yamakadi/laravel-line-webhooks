@@ -2,18 +2,18 @@
 
 namespace Yamakadi\LineWebhooks\Tests;
 
-use LINE\LINEBot\Event\BaseEvent;
+use Yamakadi\LineBot\Events\Event;
 use Yamakadi\LineWebhooks\LineWebhookCall;
 
 class DummyJob
 {
-    /** @var \LINE\LINEBot\Event\BaseEvent */
+    /** @var \Yamakadi\LineBot\Events\Event */
     public $event;
 
     /** @var \Yamakadi\LineWebhooks\LineWebhookCall */
     public $lineWebhookCall;
 
-    public function __construct(BaseEvent $event, LineWebhookCall $lineWebhookCall)
+    public function __construct(Event $event, LineWebhookCall $lineWebhookCall)
     {
         $this->event = $event;
         $this->lineWebhookCall = $lineWebhookCall;

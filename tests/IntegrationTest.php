@@ -20,7 +20,7 @@ class IntegrationTest extends TestCase
 
         Route::lineWebhooks('line-webhooks');
 
-        config(['line-webhooks.jobs' => ['text_message' => DummyJob::class]]);
+        config(['line-webhooks.jobs' => ['text' => DummyJob::class]]);
     }
 
     /** @test */
@@ -38,11 +38,11 @@ class IntegrationTest extends TestCase
 
         $webhookCall = LineWebhookCall::first();
 
-        $this->assertEquals('text_message', $webhookCall->type);
+        $this->assertEquals('text', $webhookCall->type);
         $this->assertEquals($payload, json_decode($webhookCall->payload, true));
         $this->assertNull($webhookCall->exception);
 
-        Event::assertDispatched('line-webhooks::text_message', function ($event, BaseEvent $baseEvent, LineWebhookCall $eventPayload) use ($webhookCall) {
+        Event::assertDispatched('line-webhooks::text', function ($event, \Yamakadi\LineBot\Events\Event $generic, LineWebhookCall $eventPayload) use ($webhookCall) {
             return $eventPayload->id === $webhookCall->id;
         });
 

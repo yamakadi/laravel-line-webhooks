@@ -6,6 +6,7 @@ use Exception;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Event;
 use LINE\LINEBot\Event\BaseEvent;
+use Yamakadi\LineBot\Events\Generic;
 use Yamakadi\LineWebhooks\LineWebhookCall;
 
 class LineWebhookCallTest extends TestCase
@@ -21,10 +22,10 @@ class LineWebhookCallTest extends TestCase
 
         Event::fake();
 
-        config(['line-webhooks.jobs' => ['my_type' => DummyJob::class]]);
+        config(['line-webhooks.jobs' => ['test' => DummyJob::class]]);
 
         $this->lineWebhookCall = LineWebhookCall::create([
-            'type' => 'my_type',
+            'type' => 'test',
             'payload' => $this->getFakePayload(),
         ]);
     }
@@ -32,7 +33,7 @@ class LineWebhookCallTest extends TestCase
     /** @test */
     public function it_will_fire_off_the_configured_job()
     {
-        $this->lineWebhookCall->process(new BaseEvent($this->getFakePayload()));
+        $this->lineWebhookCall->process($this->getFakeEvent());
 
         Bus::assertDispatched(DummyJob::class, function (DummyJob $job) {
             return $job->lineWebhookCall->id === $this->lineWebhookCall->id;
@@ -44,7 +45,7 @@ class LineWebhookCallTest extends TestCase
     {
         config(['line-webhooks.jobs' => ['another_type' => DummyJob::class]]);
 
-        $this->lineWebhookCall->process($this->getFakeBaseEvent());
+        $this->lineWebhookCall->process($this->getFakeEvent());
 
         Bus::assertNotDispatched(DummyJob::class);
     }
@@ -54,7 +55,7 @@ class LineWebhookCallTest extends TestCase
     {
         config(['line-webhooks.jobs' => []]);
 
-        $this->lineWebhookCall->process($this->getFakeBaseEvent());
+        $this->lineWebhookCall->process($this->getFakeEvent());
 
         Bus::assertNotDispatched(DummyJob::class);
     }
@@ -64,11 +65,11 @@ class LineWebhookCallTest extends TestCase
     {
         config(['line-webhooks.jobs' => ['another_type' => DummyJob::class]]);
 
-        $this->lineWebhookCall->process($this->getFakeBaseEvent());
+        $this->lineWebhookCall->process($this->getFakeEvent());
 
         $webhookCall = $this->lineWebhookCall;
 
-        Event::assertDispatched("line-webhooks::{$webhookCall->type}", function ($event, BaseEvent $baseEvent, $eventPayload) use ($webhookCall) {
+        Event::assertDispatched("line-webhooks::{$webhookCall->type}", function ($event, Generic $genericEvent, $eventPayload) use ($webhookCall) {
             if (! $eventPayload instanceof LineWebhookCall) {
                 return false;
             }
@@ -92,7 +93,7 @@ class LineWebhookCallTest extends TestCase
     {
         $this->lineWebhookCall->saveException(new Exception('my message', 123));
 
-        $this->lineWebhookCall->process($this->getFakeBaseEvent());
+        $this->lineWebhookCall->process($this->getFakeEvent());
 
         $this->assertNull($this->lineWebhookCall->exception);
     }
